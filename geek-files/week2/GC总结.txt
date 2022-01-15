@@ -1,0 +1,99 @@
+-Xmx最大堆内存
+-Xms初始堆内存
+
+串行GC情况：
+	1.串行GC,512m内存
+	java -Xms512m -Xmx512m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 8次 最大28ms,最小20ms
+	FullGC  3次 整体最大80ms，最小70ms;youngGC最大0.63ms，最小youngGC0.58ms
+
+	2.串行GC,1g内存
+	java -Xms1g -Xmx1g -XX:+UseSerialGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 8次 最大75ms,最小33ms
+	FullGC  0
+
+	3.串行GC,4g内存
+	java -Xms4g -Xmx4g -XX:+UseSerialGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 2次 最大347ms,最小108ms
+	FullGC  0
+
+并行GC情况：
+	1.512m内存
+	java -Xms512m -Xmx512m -XX:+UseParallelGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 23次 最大21ms,最小4ms
+	FullGC  4次  最大80ms，最小60ms
+
+	2.1g内存
+	java -Xms1g -Xmx1g -XX:+UseParallelGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 12次 最大41ms,最小19ms
+	FullGC  1次  93ms
+
+	3.4g内存
+	java -Xms4g -Xmx4g -XX:+UseParallelGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 3次 最大87ms,最小66ms
+	FullGC  0
+
+
+CMSGC情况：
+	1.512m内存
+	java -Xms512m -Xmx512m -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 15次 最大21ms,最小9ms
+	CMSGC  5次  最大初始标记2ms，最小1.5ms 最大最终标记5.5ms，最小2.9ms 
+
+	2.1g内存
+	java -Xms1g -Xmx1g -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 11次 最大41ms,最小19ms
+	CMSGC  3次  最大初始标记0.8ms，最小0.5ms 最大最终标记12ms，最小2ms
+
+	3.4g内存
+	java -Xms4g -Xmx4g -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 6次 最大72ms,最小35ms
+	CMSGC  0
+	
+G1GC情况：
+	1.512m内存
+	java -Xms512m -Xmx512m -XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 13次 最大21ms,最小9ms
+	mixedGC  5次  最大初始标记16ms，最小2ms 最大最终标记11ms，最小2.9ms 
+
+	2.1g内存
+	java -Xms1g -Xmx1g -XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 11次 最大21ms,最小7ms
+	mixedGC  3次  最大初始标记32ms，最小3ms 最大最终标记12ms，最小2ms
+
+	3.4g内存
+	java -Xms4g -Xmx4g -XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDateStamps GCLogAnalysis
+
+	情况：
+	youngGC 11次 最大29ms,最小17ms
+	mixedGC  0
+
+总结：
+1.堆越大，GC次数越少，每次GC时间相应变长；新生代相应也变大，发生fullGC次数越少；
+2.堆内存较小时并行、CMS、G1 GC效率差异不大，堆越大G1性能表现越好，整体性能G1>CMS>并行>串行
+3.未关闭jvm自适应时，jvm会根据自身策略对堆进分配
+4.CMS、G1进行fullGC时，STW影响更小，大部分步骤可并发，在老年代GC并发的同时，新生代GC可能会同时并发处理
+5.Xms与Xmx一般设置为相同，否则因堆大小不够，需要进行FullGC扩容
+6.G1GC较其他垃圾回收器更为复杂，显示GCDetails不易阅读
